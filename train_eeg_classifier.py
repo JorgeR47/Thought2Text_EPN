@@ -3,6 +3,7 @@ import random
 import json
 import torch
 import numpy as np
+import evaluate
 from tqdm import tqdm
 from datautils import EEGDataset, Splitter
 from channelnet.model import ChannelNetModel
@@ -16,7 +17,7 @@ from transformers import (
     CLIPVisionModelWithProjection,
 )
 from torch.utils.data import DataLoader, Dataset
-import evaluate
+import eval
 
 
 def set_seed(seed):
@@ -53,7 +54,7 @@ class EEGEncoderTrainer(Trainer):
         self.softmax = torch.nn.Softmax(dim=1)
         self.device = "cpu"
 
-    def compute_loss(self, model, inputs, return_outputs=False):
+    def compute_loss(self, model, inputs, return_outputs=False, **kwargs):
         self.model.train()
         img_data, eeg, labels = inputs
         image_embeddings = self.clip_model(
@@ -184,8 +185,8 @@ def main():
         weight_decay=args.weight_decay,
         max_grad_norm=args.max_grad_norm,
         max_steps=args.max_steps,
-        warmup_ratio=args.warmup_ratio,
-        group_by_length=args.group_by_length,
+        # warmup_ratio=args.warmup_ratio,
+        # group_by_length=args.group_by_length,
         lr_scheduler_type=args.lr_scheduler_type,
         load_best_model_at_end=True,
         save_strategy="epoch",
