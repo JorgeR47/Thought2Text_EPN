@@ -1,4 +1,4 @@
-﻿"""
+"""
 Etapa 1 de Thought2Text: entrenamiento del codificador EEG (ChannelNet).
 
 El codificador recibe la señal EEG y aprende dos cosas a la vez:
@@ -87,7 +87,7 @@ def crear_training_arguments(**kwargs):
     if "eval_strategy" in kwargs and "eval_strategy" not in aceptados and "evaluation_strategy" in aceptados:
         kwargs["evaluation_strategy"] = kwargs.pop("eval_strategy")
     elif "evaluation_strategy" in kwargs and "evaluation_strategy" not in aceptados and "eval_strategy" in aceptados:
-        kwargs["eval_strategy"] = kwargs.pop("eval_strategy")
+        kwargs["eval_strategy"] = kwargs.pop("evaluation_strategy")
 
     # adamw_hf (el AdamW propio de transformers) no existe en versiones nuevas;
     # adamw_torch es el AdamW de PyTorch con los mismos hiperparámetros.
