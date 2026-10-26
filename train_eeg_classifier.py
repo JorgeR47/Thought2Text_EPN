@@ -10,6 +10,7 @@ Los cambios respecto al original están marcados con "[EPN]" y explicados en el 
 No cambian el método ni los hiperparámetros del artículo.
 """
 import inspect
+from collections.abc import Mapping
 import logging
 import random
 
@@ -135,7 +136,7 @@ class EEGEncoderTrainer(Trainer):
         # [EPN] Manejo robusto de datos de imagen ya sea BatchFeature/dict o tensor directo
         pixel_values = (
             img_data["pixel_values"]
-            if isinstance(img_data, dict)
+            if isinstance(img_data, Mapping)
             else img_data
         )
         pixel_values = pixel_values.to(self.clip_model.device)
