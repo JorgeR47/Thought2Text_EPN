@@ -186,7 +186,7 @@ class EEGEncoderTrainer(Trainer):
             for image_raw, eeg_data, labels in tqdm(dataloader):
                 pixel_values = (
                     image_raw["pixel_values"]
-                    if isinstance(image_raw, dict)
+                    if isinstance(image_raw, Mapping)
                     else image_raw
                 )
                 pixel_values = pixel_values.to(self.clip_model.device)
