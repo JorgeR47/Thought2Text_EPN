@@ -16,6 +16,8 @@ rm -rf "$FX"
 
 export WANDB_MODE=disabled TOKENIZERS_PARALLELISM=false
 export HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 HF_DATASETS_OFFLINE=1  # todo es local
+# tests/sitecustomize.py desactiva oneDNN en CPU (ver la explicación en ese archivo)
+export PYTHONPATH="$(pwd)/tests${PYTHONPATH:+:$PYTHONPATH}"
 
 echo "##### Preparando datos y modelos de prueba en $FX"
 $PY tests/make_fixtures.py "$FX" || { echo "FALLO al crear los datos de prueba"; exit 1; }
