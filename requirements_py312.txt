@@ -1,0 +1,17 @@
+# [EPN] Versiones ACTUALES (octubre 2026) para Python 3.12, por ejemplo Google Colab.
+# Probadas con el pipeline completo (tests/run_pipeline.sh). Para replicar el artículo con
+# sus versiones originales, usar requirements.txt con Python 3.10/3.11.
+torch==2.14.1           # en Colab ya viene instalado: se puede quitar esta línea
+transformers==5.21.0
+tokenizers==0.23.3
+peft==0.21.2
+accelerate==1.15.0
+bitsandbytes==0.50.2
+numpy==2.5.4
+pandas==3.1.0
+evaluate==0.4.6
+datasets==5.1.0
+Pillow
+sentencepiece==0.2.2
+tensorboard==2.21.0
+# No hacen falta: trl, wandb y tensorboardX (el código no los usa)

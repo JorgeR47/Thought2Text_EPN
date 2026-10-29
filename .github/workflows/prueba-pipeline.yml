@@ -1,5 +1,6 @@
 # Ejecuta la prueba de humo del pipeline completo en cada pull request y en cada
-# cambio a main. Si algo se rompe, GitHub marca el PR con una X roja.
+# cambio a main, con dos combinaciones de versiones. Si algo se rompe, GitHub marca
+# el PR con una X roja.
 name: Prueba del pipeline
 
 on:
@@ -10,24 +11,35 @@ on:
 
 jobs:
   pipeline-cpu:
+    name: pipeline-cpu (${{ matrix.nombre }})
     runs-on: ubuntu-latest
     timeout-minutes: 40
+    strategy:
+      fail-fast: false   # si una combinación falla, la otra igual termina
+      matrix:
+        include:
+          - nombre: versiones del artículo
+            python: "3.11"   # las versiones de requirements.txt no instalan en 3.12+
+            torch: "2.4.1"
+            requisitos: requirements.txt
+          - nombre: versiones actuales
+            python: "3.12"   # como Google Colab
+            torch: "2.14.1"
+            requisitos: requirements_py312.txt
     steps:
       - uses: actions/checkout@v5
 
       - uses: actions/setup-python@v6
         with:
-          python-version: "3.11"   # las versiones de requirements.txt no instalan en 3.12+
+          python-version: ${{ matrix.python }}
           cache: pip
 
-      - name: Instalar dependencias (versiones del paper)
+      - name: Instalar dependencias
         run: |
           python -m pip install --upgrade pip
-          # PyTorch 2.4.1 en su versión para CPU (mucho más liviana que la de GPU)
-          pip install torch==2.4.1 --index-url https://download.pytorch.org/whl/cpu
-          # requirements.txt + fijaciones necesarias para que esas versiones funcionen hoy
-          pip install -r requirements.txt "numpy<2" evaluate==0.4.2 datasets==2.20.0 \
-            pyarrow==16.1.0 "huggingface-hub<1.0"
+          # PyTorch en su versión para CPU (mucho más liviana que la de GPU)
+          pip install torch==${{ matrix.torch }} --index-url https://download.pytorch.org/whl/cpu
+          pip install -r ${{ matrix.requisitos }}
 
       - name: Ejecutar el pipeline completo con datos de prueba
         run: bash tests/run_pipeline.sh python "$RUNNER_TEMP/t2t_prueba"

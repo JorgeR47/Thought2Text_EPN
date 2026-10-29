@@ -114,6 +114,12 @@ class ChannelNetModel(PreTrainedModel):
         )
         self.projector = nn.Linear(encoding_size, config.embedding_size)
         self.classifier = nn.Linear(config.embedding_size, config.num_classes)
+        # [EPN] transformers >= 5 exige post_init() en los modelos propios para poder cargarlos con from_pretrained
+        self.post_init()
+
+    def _init_weights(self, module):
+        # [EPN] Se conserva la inicialización por defecto de PyTorch, igual que en el código original
+        pass
 
     def forward(self, x):
         out = self.encoder(x)

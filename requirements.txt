@@ -7,6 +7,13 @@ pandas==1.5.3
 Pillow
 wandb==0.16.6
 sentencepiece==0.1.99
-evaluate
+evaluate==0.4.2
 tensorboardX
 torch==2.4.1
+# [EPN] Versiones del artículo. Usar con Python 3.10 o 3.11 (con 3.12+ no instalan
+# pandas ni sentencepiece). Para Python 3.12 / Colab: requirements_py312.txt
+# [EPN] Sin estas fijaciones, pip instala versiones nuevas que rompen las de arriba:
+numpy<2                 # pandas 1.5.3 falla con numpy 2 ("numpy.dtype size changed")
+datasets==2.20.0        # evaluate arrastra datasets/pyarrow; los nuevos exigen numpy 2
+pyarrow==16.1.0
+huggingface-hub<1.0     # transformers 4.44 no es compatible con huggingface-hub 1.x

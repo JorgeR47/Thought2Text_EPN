@@ -13,13 +13,27 @@ from constants import label_map, id2label
 logger = logging.getLogger(__name__)
 
 
+def load_pth(path):
+    """[EPN] torch.load compatible con PyTorch < 2.6 y >= 2.6.
+
+    Desde 2.6, torch.load usa weights_only=True y rechaza algunos objetos. Si el archivo
+    no abre así, se reintenta con weights_only=False. Hazlo solo con archivos de confianza
+    (los .pth del Drive de los autores), porque ese modo puede ejecutar código del archivo.
+    """
+    try:
+        return torch.load(path)
+    except Exception as e:  # pickle.UnpicklingError en torch >= 2.6
+        logger.warning(f"torch.load estricto falló para {path} ({type(e).__name__}); reintentando con weights_only=False")
+        return torch.load(path, weights_only=False)
+
+
 class EEGDataset:
 
     # Constructor
     def __init__(self, args, fine_tuning=False):
         self.args = args
         # Load EEG signals
-        loaded = torch.load(args.eeg_dataset)
+        loaded = load_pth(args.eeg_dataset)
         if args.subject != 0:
             self.data = [
                 loaded["dataset"][i]
@@ -57,7 +71,7 @@ class EEGDataset:
         )
         image_raw = Image.open(image_path).convert("RGB")
 
-        image_raw = self.processor(images=image_raw, return_tensors="pt", padding=True)
+        image_raw = self.processor(images=image_raw, return_tensors="pt")  # [EPN] sin padding: transformers 5 lo rechaza en imágenes
         image_raw["pixel_values"] = image_raw["pixel_values"].squeeze(0)
 
         if self.fine_tuning:
@@ -75,7 +89,7 @@ class Splitter:
         # Set EEG dataset
         self.dataset = dataset
         # Load split
-        loaded = torch.load(split_path)
+        loaded = load_pth(split_path)
         self.split_idx = loaded["splits"][split_num][split_name]
         # Filter data
         self.split_idx = [
@@ -134,7 +148,7 @@ class EEGFineTuningDataset:
         
         
         # Load EEG signals
-        loaded = torch.load(args.eeg_dataset)
+        loaded = load_pth(args.eeg_dataset)
         if args.subject != 0:
             self.data = [
                 loaded["dataset"][i]
@@ -210,7 +224,7 @@ class EEGFineTuningDataset:
 
         image_raw = Image.open(image_path).convert("RGB")
 
-        image_raw = self.processor(images=image_raw, return_tensors="pt", padding=True)
+        image_raw = self.processor(images=image_raw, return_tensors="pt")  # [EPN] sin padding: transformers 5 lo rechaza en imágenes
         image_raw["pixel_values"] = image_raw["pixel_values"].squeeze(0)
 
         return image_raw, eeg, input_ids1, input_ids2, label_string
@@ -222,7 +236,7 @@ class SplitterFineTuning:
         # f.dataset = dataset
         self.dataset = dataset
         # Load split
-        loaded = torch.load(split_path)
+        loaded = load_pth(split_path)
         self.split_idx = loaded["splits"][split_num][split_name]
         # Filter data
         self.split_idx = [
@@ -283,7 +297,7 @@ class EEGInferenceDataset:
     def __init__(self, args):
         self.args = args
         # Load EEG signals
-        loaded = torch.load(args.eeg_dataset)
+        loaded = load_pth(args.eeg_dataset)
         if args.subject != 0:
             self.data = [
                 loaded["dataset"][i]
@@ -334,7 +348,7 @@ class SplitterInference:
         # f.dataset = dataset
         self.dataset = dataset
         # Load split
-        loaded = torch.load(split_path)
+        loaded = load_pth(split_path)
         self.split_idx = loaded["splits"][split_num][split_name]
         # Filter data
         self.split_idx = [

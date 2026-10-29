@@ -37,6 +37,7 @@ from datautils import (
 from torch.utils.data import Dataset, DataLoader
 from args import get_args_for_llm_finetuning
 from model import EEGModelForCausalLM
+from compat import crear_training_arguments  # [EPN] misma función que usa la etapa 1
 
 
 logging.basicConfig()
@@ -73,7 +74,8 @@ class Stage2Trainer(Trainer):
         self.device = "cuda:0" if torch.cuda.is_available() else "cpu"
         self.tokenizer = tokenizer
 
-    def compute_loss(self, model, inputs, return_outputs=False):
+    def compute_loss(self, model, inputs, return_outputs=False, num_items_in_batch=None, **kwargs):
+        # [EPN] transformers >= 4.46 pasa num_items_in_batch; se acepta y se ignora
         (
             img_data,
             eeg_data,
@@ -107,7 +109,8 @@ class Stage3Trainer(Trainer):
         self.device = "cuda:0" if torch.cuda.is_available() else "cpu"
         self.tokenizer = tokenizer
 
-    def compute_loss(self, model, inputs, return_outputs=False):
+    def compute_loss(self, model, inputs, return_outputs=False, num_items_in_batch=None, **kwargs):
+        # [EPN] transformers >= 4.46 pasa num_items_in_batch; se acepta y se ignora
         (
             eeg_data,
             input_ids1,
@@ -191,7 +194,7 @@ def main():
 
 
         else:           
-            training_arguments_stage2 = TrainingArguments(
+            training_arguments_stage2 = crear_training_arguments(
                 output_dir=args.output,
                 num_train_epochs=args.num_epochs_image,
                 per_device_train_batch_size=args.batch_size,
@@ -300,7 +303,7 @@ def main():
         }
     
 
-    training_arguments_stage3 = TrainingArguments(
+    training_arguments_stage3 = crear_training_arguments(
         output_dir=args.output,
         num_train_epochs=args.num_epochs_eeg,
         per_device_train_batch_size=args.batch_size,

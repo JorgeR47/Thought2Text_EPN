@@ -23,15 +23,8 @@ from transformers import (
     Trainer,
     TrainingArguments,
 )
-try:
-    from transformers.training_args import OptimizerNames
-except ImportError:
-    try:
-        from transformers import OptimizerNames
-    except ImportError:
-        OptimizerNames = None
-
 from args import get_args_for_encoder_training
+from compat import crear_training_arguments  # [EPN] movida a compat.py para compartirla con finetune_llm.py
 from channelnet.config import EEGModelConfig
 from channelnet.model import ChannelNetModel
 from datautils import EEGDataset, Splitter
@@ -73,38 +66,6 @@ def exactitud(predicciones, referencias):
         return 0.0
     aciertos = sum(int(p == r) for p, r in zip(predicciones, referencias))
     return float(aciertos) / len(referencias)
-
-
-def crear_training_arguments(**kwargs):
-    """[EPN] TrainingArguments con los mismos valores del original en cualquier versión.
-
-    Con la versión fijada en requirements.txt (transformers 4.44.0) no cambia nada.
-    Si la versión instalada no admite algún argumento, solo ese se adapta o se omite y
-    queda un aviso en el registro, en lugar de detener el entrenamiento.
-    """
-    aceptados = set(inspect.signature(TrainingArguments.__init__).parameters)
-
-    # eval_strategy se llamaba evaluation_strategy antes de transformers 4.41.
-    if "eval_strategy" in kwargs and "eval_strategy" not in aceptados and "evaluation_strategy" in aceptados:
-        kwargs["evaluation_strategy"] = kwargs.pop("eval_strategy")
-    elif "evaluation_strategy" in kwargs and "evaluation_strategy" not in aceptados and "eval_strategy" in aceptados:
-        kwargs["eval_strategy"] = kwargs.pop("evaluation_strategy")
-
-    # adamw_hf (el AdamW propio de transformers) no existe en versiones nuevas;
-    # adamw_torch es el AdamW de PyTorch con los mismos hiperparámetros.
-    if OptimizerNames is not None:
-        optimizadores = {opcion.value for opcion in OptimizerNames}
-    else:
-        optimizadores = set()
-
-    if kwargs.get("optim") and optimizadores and kwargs["optim"] not in optimizadores:
-        logger.warning("El optimizador %s no existe en esta versión; se usa adamw_torch.", kwargs["optim"])
-        kwargs["optim"] = "adamw_torch"
-
-    for nombre in [n for n in list(kwargs.keys()) if n not in aceptados]:
-        logger.warning("TrainingArguments no admite '%s' en esta versión; se omite.", nombre)
-        kwargs.pop(nombre)
-    return TrainingArguments(**kwargs)
 
 
 class EEGEncoderTrainer(Trainer):
