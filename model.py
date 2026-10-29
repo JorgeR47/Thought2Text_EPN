@@ -63,13 +63,11 @@ class EEGModelForCausalLM(PreTrainedModel):
 
         if self.eeg_encoder.config.to_dict() != self.config.eeg_encoder.to_dict():
             logger.warning(
-                f"Config of the encoder: {self.encoder.__class__} is overwritten by shared encoder config:"
-                f" {self.config.encoder}"
+                f"Config of the encoder: {self.eeg_encoder.__class__} is overwritten by shared encoder config"
             )
         if self.llm.config.to_dict() != self.config.llm.to_dict():
             logger.warning(
-                f"Config of the decoder: {self.decoder.__class__} is overwritten by shared decoder config:"
-                f" {self.config.decoder}"
+                f"Config of the decoder: {self.llm.__class__} is overwritten by shared decoder config"
             )
 
         self.eeg_encoder.config = self.config.eeg_encoder
